@@ -1,12 +1,7 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Play.Catalog.Service.dtos;
 using Play.Catalog.Service.Entities;
-using Play.Catalog.Service.Repositories;
+using Play.Common.Repositories;
 
 namespace Play.Catalog.Service.Controllers;
 
@@ -14,8 +9,8 @@ namespace Play.Catalog.Service.Controllers;
 [ApiController]
 public class ItemController : ControllerBase
 {
-    private readonly IItemRepository itemRepository;
-    public ItemController(IItemRepository itemRepository)
+    private readonly IRepository<Item> itemRepository;
+    public ItemController(IRepository<Item> itemRepository)
     {
         this.itemRepository = itemRepository;
     }
@@ -30,10 +25,15 @@ public class ItemController : ControllerBase
 
 
     [HttpGet("{id}")]
-    public async Task<ItemDto> GetById(Guid id)
+    public async Task<ActionResult<ItemDto>> GetById(Guid id)
     {
-        var item = (await itemRepository.GetItemAsync(id)).AsDto();
-        return item;
+        var item = await itemRepository.GetAsync(id);
+        if (item == null)
+        {
+            return NotFound();
+        }
+
+        return item.AsDto();
     }
 
     [HttpPost]
@@ -56,7 +56,7 @@ public class ItemController : ControllerBase
     public async Task<ActionResult> PutAsync(Guid id, UpdateItemDTO updateItemDTO)
     {
 
-        var existingItem = await itemRepository.GetItemAsync(id);
+        var existingItem = await itemRepository.GetAsync(id);
         if (existingItem == null)
         {
             return NotFound();
@@ -70,15 +70,15 @@ public class ItemController : ControllerBase
     }
 
     [HttpDelete("{id}")]
-    public async  Task<IActionResult> Delete(Guid id)
+    public async Task<IActionResult> Delete(Guid id)
     {
-        var existingItem = await itemRepository.GetItemAsync(id);
-             if (existingItem == null)
+        var existingItem = await itemRepository.GetAsync(id);
+        if (existingItem == null)
         {
             return NotFound();
         }
         await itemRepository.RemoveAsync(id);
-         return NoContent();
+        return NoContent();
     }
 
 }

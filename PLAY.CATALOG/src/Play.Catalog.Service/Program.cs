@@ -1,37 +1,9 @@
-using MongoDB.Bson;
-using MongoDB.Bson.Serialization;
-using MongoDB.Bson.Serialization.Serializers;
-using MongoDB.Driver;
-using Play.Catalog.Service.Repositories;
-using Play.Catalog.Service.Setting;
+using Play.Catalog.Service.Entities;
+using Play.Common.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
-
-// 1. Đăng ký MongoClient (Kết nối đến Server Docker)
-builder.Services.AddSingleton<IMongoClient>(serviceProvider =>
-{
-    // Đọc cụm "MongoDbSettings" từ appsettings.json
-    var mongoDbSettings = builder.Configuration.GetSection(("MongoDBSettingJSON")).Get<MongoDBSetting>()!;
-    return new MongoClient(mongoDbSettings.ConnectionString);
-});
-
-// 2. Đăng ký IMongoDatabase (Chọc vào Database tên là "Catalog")
-builder.Services.AddSingleton<IMongoDatabase>(serviceProvider =>
-{
-    // Đọc cụm "ServiceSettings" để lấy chữ "Catalog"
-    var serviceSettings = builder.Configuration.GetSection(("ServiceSettingJSON")).Get<ServiceSetting>()!;
-    var mongoClient = serviceProvider.GetRequiredService<IMongoClient>();
-
-    // Ném chữ "Catalog" vào đây để chốt tên DB
-    return mongoClient.GetDatabase(serviceSettings.ServiceName);
-});
-
-builder.Services.AddSingleton<IItemRepository, ItemRepository>();
-
-//Serializer data Guid và date cho dễ đọc
-BsonSerializer.RegisterSerializer(new GuidSerializer(BsonType.String));
-BsonSerializer.RegisterSerializer(new DateTimeOffsetSerializer(BsonType.String));
+builder.Services.AddMongo().AddMongoRepository<Item>("items");
 
 
 // Add services to the container.
@@ -68,7 +40,3 @@ app.MapControllers();
 
 app.Run();
 
-record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
-{
-    public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
-}
