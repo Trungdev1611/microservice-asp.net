@@ -1,0 +1,7 @@
+<Solution>
+  <Folder Name="/PLAY.CATALOG/" />
+  <Folder Name="/PLAY.CATALOG/src/">
+    <Project Path="PLAY.CATALOG/src/Play.Catalog.Service/Play.Catalog.Service.csproj" />
+  </Folder>
+  <Project Path="Play.Common/Play.Common.csproj" />
+</Solution>
